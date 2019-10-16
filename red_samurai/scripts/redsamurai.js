@@ -56,6 +56,8 @@ var TS = 20;  // Global var/switch to enforce a certain pixel count for height a
     crisp='true';
 */
 
+var FANTASY_FONT = createFont("fantasy");
+
 // Created an enum for use in a switch statement later to track the current game state
 var GameState_e = {
     START: 0,
@@ -215,17 +217,56 @@ var swordObj = function(x, y) {
     this.isSword = true;
 };
 
+// Create an invisible object for invisible barriers
+var emptyObj = function (x, y) {
+	this.x = x;
+	this.y = y;
+	this.collectable = false;
+	this.isSword = false;
+}
+
 // Define key press state structure and related functions
 var keyState = {
     PRESSED: 0,
+}
+
+var DISABLE = {
+    W: false,
+    A: false,
+    S: false,
+    D: false,
 };
 
 var keyPressed = function() {
     keyState.PRESSED = 1;
+    if (key.toString() === 'w') {
+    	DISABLE.W = false;
+    }
+    if (key.toString() === 'a') {
+    	DISABLE.A = false;
+    }
+    if (key.toString() === 'd') {
+    	DISABLE.D = false;
+    }
+    if (key.toString() === 's') {
+    	DISABLE.S = false;
+    }
 };
 
 var keyReleased = function() {
     keyState.PRESSED = 0;
+    if (key.toString() === 'w') {
+    	DISABLE.W = true;
+    }
+    if (key.toString() === 'a') {
+    	DISABLE.A = true;
+    }
+    if (key.toString() === 'd') {
+    	DISABLE.D = true;
+    }
+    if (key.toString() === 's') {
+    	DISABLE.S = true;
+    }
 };
 
 var wPressed = function() {
@@ -244,43 +285,20 @@ var aPressed = function() {
     return (keyState.PRESSED && key.toString() === 'a');  
 };
 
-var DISABLE = {
-    W: false,
-    A: false,
-    S: false,
-    D: false,
-};
-
 playerObj.prototype.draw = function() {
     var self = this;
 
     var updatePosByKey = function() {
-        if (aPressed() && DISABLE.A === false && wPressed() && DISABLE.W === false) {
-            self.y -= self.speed;
-            self.x -= self.speed;
-        }
-        if (aPressed() && DISABLE.A === false && sPressed() && DISABLE.S === false) {
-            self.y += self.speed; 
-            self.x -= self.speed;
-        }
-        if (dPressed() && DISABLE.D === false && wPressed() && DISABLE.W === false) {
-            self.x += self.speed;
+        if (DISABLE.W === false) {   
             self.y -= self.speed;  
         }
-        if (dPressed() && DISABLE.D === false && sPressed() && DISABLE.S === false) {
-            self.x += self.speed;
+        if (DISABLE.S === false) {
             self.y += self.speed;  
         }
-        if (wPressed() && DISABLE.W === false) {   
-            self.y -= self.speed;  
-        }
-        if (sPressed() && DISABLE.S === false) {
-            self.y += self.speed;  
-        }
-        if (dPressed() && DISABLE.D === false) {
+        if (DISABLE.D === false) {
             self.x += self.speed;
         }
-        if (aPressed() && DISABLE.A === false) {
+        if (DISABLE.A === false) {
             self.x -= self.speed;
         }
     };
@@ -293,16 +311,16 @@ playerUpgradedObj.prototype.draw = function() {
     var self = this;
 
     var updatePosByKey = function() {
-        if (wPressed() && DISABLE.W === false) {                 
-            self.y -= self.speed; 
+        if (DISABLE.W === false) {   
+            self.y -= self.speed;  
         }
-        if (sPressed() && DISABLE.S === false) {
+        if (DISABLE.S === false) {
             self.y += self.speed;  
         }
-        if (dPressed() && DISABLE.D === false) {
+        if (DISABLE.D === false) {
             self.x += self.speed;
         }
-        if (aPressed() && DISABLE.A === false) {
+        if (DISABLE.A === false) {
             self.x -= self.speed;
         }
     };
@@ -349,6 +367,10 @@ enemy2Obj.prototype.seek = function() {
         this.step.mult(this.speed);
         this.position.add(this.step);
     }
+}
+
+emptyObj.prototype.draw = function() {
+    return;
 }
 
 enemy1Obj.prototype.draw = function() {
@@ -422,56 +444,56 @@ var drawWinningEndScreen = function() {
 var gameObj = function() {
     // Because each tile is 20 x 20 pixels, 
     this.tilemap = [
-        "lxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  // row: 1  - 20   px
-        "y               g        g                  11111y",  // row: 2  - 40   px
-        "y               g        g                  22222y",  // row: 3  - 60   px
-        "y               g        g                  11111y",  // row: 4  - 80   px
-        "y     s         g        g                       y",  // row: 5  - 100  px
-        "y               2        2                       y",  // row: 6  - 120  px
-        "y               g        g                       y",  // row: 7  - 140  px
-        "y   s           g        g   s121    2222    1fffy",  // row: 8  - 160  px
-        "y               g        g   1 b     g sg    g s y",  // row: 9  - 180  px
-        "y       s       g        g   1       gs g    g   y",  // row: 10 - 200  px
-        "y               g        g   s  g    gs g    gs sy",  // row: 11 - 220  px
-        "y               g        g   2  g    g  g    g   y",  // row: 12 - 240  px
-        "y               g        g   2  g    g sg    g s y",  // row: 13 - 260  px
-        "y               g        g      g    g sg    g   y",  // row: 14 - 280  px
-        "y               g        g      g    gs g    gs sy",  // row: 15 - 300  px
-        "y               g        g   s  g    g  g    g   y",  // row: 16 - 320  px
-        "y               g        g   2  g    gs g    g s y",  // row: 17 - 340  px
-        "y               1ffffffff1   s  g    g sg    g   y",  // row: 18 - 360  px
-        "y                            1 bg    gs g    gs sy",  // row: 19 - 380  px
-        "y    s                       s  g    1111    g111y",  // row: 20 - 400  px
-        "y                                                y",  // row: 21 - 420  px
-        "y           s                                    y",  // row: 22 - 440  px
-        "y                                                y",  // row: 23 - 460  px
-        "y         s                     b                y",  // row: 24 - 480  px
-        "y                                                y",  // row: 25 - 500  px
-        "y                                                y",  // row: 26 - 520  px
-        "y   2ffffffffffff1    1ffff  ffffffffffffff2     y",  // row: 27 - 540  px
-        "y   g            g    g  b                 g     y",  // row: 28 - 560  px
-        "y   g  s1s1s     g    g   11111111111111   g     y",  // row: 29 - 580  px
-        "y   g  2s2s2     g    g   2            2   g     y",  // row: 30 - 600  px
-        "y   g  s1s1s     g    g   2   s     s  2         y",  // row: 31 - 620  px
-        "y   g            g    g   2            2         y",  // row: 32 - 640  px
-        "y   1ffffffffffff2    g   2            2   g     y",  // row: 33 - 660  px
-        "y b                   g   2    s       2   g     y",  // row: 34 - 680  px
-        "y           b         g   2            2   g     y",  // row: 35 - 700  px
-        "y                         2  s     s   2   g     y",  // row: 36 - 720  px
-        "22222           S         2            2   g     y",  // row: 37 - 740  px
-        "     221 1            g   11111111111111   g     y",  // row: 38 - 760  px
-        " 22    1 12           g         b          g     y",  // row: 39 - 780  px
-        "y  22112 1 2          g                    g     y",  // row: 40 - 800  px
-        "y      1 1  2         1fffffffffffff       g     y",  // row: 41 - 820  px
-        "y      1 12  2                          b  g     y",  // row: 42 - 840  px
-        "y          2  2                            g     y",  // row: 43 - 860  px
-        "y   s       2  2                    11111111     y",  // row: 44 - 880  px
-        "y            2  2                                y",  // row: 45 - 900  px
-        "y      s s    2  2    s                          y",  // row: 46 - 920  px
-        "y  b    s      2  2            b                 y",  // row: 47 - 940  px
-        "y      s s   s g   22                            y",  // row: 48 - 960  px
-        "y              g2    222222                      y",  // row: 49 - 980  px
-        "y11111111111111g22         2xxxxxxxxxxxxxxxxxxxxxy",  // row: 50 - 1000 px
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",  // row: 1  - 20   px
+        "e                  eee                      11111e",  // row: 2  - 40   px
+        "e                  eee                      22222e",  // row: 3  - 60   px
+        "e                  eee                      11111e",  // row: 4  - 80   px
+        "e     s            eee                           e",  // row: 5  - 100  px
+        "e                                                e",  // row: 6  - 120  px
+        "e                  eee                           e",  // row: 7  - 140  px
+        "e   s              eeee      s121    2222    1fffe",  // row: 8  - 160  px
+        "e                 eeeeee     1 b     g sg    g s e",  // row: 9  - 180  px
+        "e       s         eeeeeee    1       gs g    g   e",  // row: 10 - 200  px
+        "e                eeeeeeee    s  g    gs g    gs se",  // row: 11 - 220  px
+        "e                eeeeeeee    2  g    g  g    g   e",  // row: 12 - 240  px
+        "e                eeeeeeee    2  g    g sg    g s e",  // row: 13 - 260  px
+        "e                eeeeeeee       g    g sg    g   e",  // row: 14 - 280  px
+        "e                eeeeeeee       g    gs g    gs se",  // row: 15 - 300  px
+        "e                 eeeeee     s  g    g  g    g   e",  // row: 16 - 320  px
+        "e                  eeee      2  g    gs g    g s e",  // row: 17 - 340  px
+        "e                            s  g    g sg    g   e",  // row: 18 - 360  px
+        "e                            1 bg    gs g    gs se",  // row: 19 - 380  px
+        "e    s                       s  g    1111    g111e",  // row: 20 - 400  px
+        "e                                                e",  // row: 21 - 420  px
+        "e           s                                    e",  // row: 22 - 440  px
+        "e                                                e",  // row: 23 - 460  px
+        "e         s                     b                e",  // row: 24 - 480  px
+        "e                                                e",  // row: 25 - 500  px
+        "e                                                e",  // row: 26 - 520  px
+        "e   2ffffffffffff1    1ffff  ffffffffffffff2     e",  // row: 27 - 540  px
+        "e   g            g    g  b                 g     e",  // row: 28 - 560  px
+        "e   g  s1s1s     g    g   11111111111111   g     e",  // row: 29 - 580  px
+        "e   g  2s2s2     g    g   2            2   g     e",  // row: 30 - 600  px
+        "e   g  s1s1s     g    g   2   s     s  2         e",  // row: 31 - 620  px
+        "e   g            g    g   2            2         e",  // row: 32 - 640  px
+        "e   1ffffffffffff2    g   2            2   g     e",  // row: 33 - 660  px
+        "e b                   g   2    s       2   g     e",  // row: 34 - 680  px
+        "e           b         g   2            2   g     e",  // row: 35 - 700  px
+        "e                         2  s     s   2   g     e",  // row: 36 - 720  px
+        "e               S         2            2   g     e",  // row: 37 - 740  px
+        "eeeee                 g   11111111111111   g     e",  // row: 38 - 760  px
+        "e   eeee              g         b          g     e",  // row: 39 - 780  px
+        "e      e ee           g                    g     e",  // row: 40 - 800  px
+        "e        eee          1fffffffffffff       g     e",  // row: 41 - 820  px
+        "e         eee                           b  g     e",  // row: 42 - 840  px
+        "e           ee                             g     e",  // row: 43 - 860  px
+        "e   s        ee                     11111111     e",  // row: 44 - 880  px
+        "e             ee                                 e",  // row: 45 - 900  px
+        "e      s s     ee     s                          e",  // row: 46 - 920  px
+        "e  b    s       ee             b                 e",  // row: 47 - 940  px
+        "e      s s   s  eee                              e",  // row: 48 - 960  px
+        "e                eeee                            e",  // row: 49 - 980  px
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",  // row: 50 - 1000 px
     ];
     
     this.gameObjects = [];
@@ -529,17 +551,20 @@ gameObj.prototype.initialize = function() {
                 case 'S':
                     this.gameObjects.push(new swordObj(j*TS, i*TS + MAP_OFFSET_Y));
                     break;
+                case 'e':
+                    this.gameObjects.push(new emptyObj(j*TS, i*TS + MAP_OFFSET_Y));
+                    break;
             }
         }
     }
     this.enemies.push(new enemy1Obj(300, 100, 2));  // Enemy 1 has a faster overall speed
     this.enemies.push(new enemy2Obj(300, -200, 1));
     this.enemyCount = this.enemies.length;  // Update the enemy count
-};
+    this.swordCollected = false;
+    this.score = 0;
+}
 
 GAME_INST.initialize();
-
-//var SWORD_COLLECTED = false;
 
 // Collision detection for the regular player
 playerObj.prototype.checkCollision = function() {
@@ -643,9 +668,14 @@ var pStartCoor = {
 };
 
 var playerOptions = {
-    BASIC: new playerObj(160, 260, 2),
-    UPGRADED: new playerUpgradedObj(320, 120, 4),
+    BASIC: null,
+    UPGRADED: null,
 };
+
+var initializePlayer = function() {
+    playerOptions.BASIC = new playerObj(160, 260, 2);
+    playerOptions.UPGRADED = new playerUpgradedObj(320, 120, 4);
+}
 
 // var upgraded_player = new playerUpgradedObj(320, 180, 3);
 
@@ -664,6 +694,14 @@ var displayCredits = function() {
 
 gameObj.prototype.drawBackground = function() {
     image(GameScreens_t.BACKGROUND, this.xCoor, this.yCoor);
+
+    textFont(FANTASY_FONT);
+    fill(60,40,40);
+    textSize(16);
+    text("R. I. P.", 280, -10);
+    
+    text("")
+
     for (var i = 0; i < GAME_INST.gameObjects.length; i++) {
         if (GAME_INST.gameObjects[i].collectable) {  // This is either a sword or a set of bones
             if (!GAME_INST.gameObjects[i].collected) {
@@ -696,6 +734,7 @@ var changeGameState = function(GameState) {
     CURRENT_GAME_STATE = GameState;
 };
 
+initializePlayer();
 var player = playerOptions.BASIC;
 
 var translationX, translationY;
@@ -783,10 +822,10 @@ var draw = function() {
             player.draw();
             
             // Reset the Key States
-            DISABLE.W = false;
-            DISABLE.A = false;
-            DISABLE.S = false;
-            DISABLE.D = false;
+            //DISABLE.W = false;
+            //DISABLE.A = false;
+            //DISABLE.S = false;
+            //DISABLE.D = false;
 
             if (GAME_INST.swordCollected) {  // Upgrade the player to the more advanced samurai
                 player = playerOptions.UPGRADED;  
@@ -804,6 +843,8 @@ var draw = function() {
             displayCredits();
             if (MouseState.PRESSED) {
                 GAME_INST.initialize();  // Reinitialize the game state for the next game instance/iteration
+                initializePlayer();
+                player = playerOptions.BASIC;
                 changeGameState(GameState_e.START);
             }
             break;
@@ -813,6 +854,8 @@ var draw = function() {
             displayCredits();
             if (MouseState.PRESSED) {
                 GAME_INST.initialize();
+                initializePlayer();
+                player = playerOptions.BASIC;
                 changeGameState(GameState_e.START);
             }
             break;
